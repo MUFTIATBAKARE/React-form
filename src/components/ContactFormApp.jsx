@@ -12,21 +12,97 @@ import { useState } from "react";
 
 // API endpoint
 // https://my-json-server.typicode.com/tundeojediran/contacts-api-server/inquiries
+const INITIAL_STATE = {
+  fullName: " ",
+  email: " ",
+  subject: " ",
+  message: " ",
+};
+
+const VALIDATION = {
+  email: [
+    {
+      isValid: (value) => !!value,
+      message: "Is required.",
+    },
+    {
+      isValid: (value) => /\S+@\S+\.\S+/.test(value),
+      message: "❌Invalid email address⚠️!",
+    },
+  ],
+  fullName: [
+    {
+      isValid: (value) => !!value,
+      message: "Is required.",
+    },
+    {
+      isValid: (value) => value.length > 10,
+      message: "❌Please, enter your full name⚠️!",
+    },
+  ],
+  subject: [
+    {
+      isValid: (value) => !!value,
+      message: "Is required.",
+    },
+    {
+      isValid: (value) => value.length > 8,
+      message: "❌Space cannot be empty⚠️!",
+    },
+  ],
+  message: [
+    {
+      isValid: (value) => !!value,
+      message: "Is required.",
+    },
+    {
+      isValid: (value) => value.length > 20,
+      message: "❌Insufficient entry⚠️!",
+    },
+  ],
+};
+const getErrorFields = (data) =>
+  Object.keys(data).reduce((acc, key) => {
+    if (!VALIDATION[key]) return acc;
+
+    const errorsPerField = VALIDATION[key]
+      // get a list of potential errors for each field
+      // by running through all the checks
+      .map((validation) => ({
+        isValid: validation.isValid(data[key]),
+        message: validation.message,
+      }))
+      // only keep the errors
+      .filter((errorPerField) => !errorPerField.isValid);
+
+    return { ...acc, [key]: errorsPerField };
+  }, {});
 
 const ContactFormApp = () => {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  const [data, setData] = useState(INITIAL_STATE);
+
+  const handleChange = (event) => {
+    console.log(event);
+    console.log(event.target.name);
+    setData({
+      ...data,
+      [event.target.name]: event.target.value,
+    });
+  };
+  const errorFields = getErrorFields(data);
+  console.log(errorFields);
 
   const onSubmit = async (event) => {
     event.preventDefault();
+    const hasErrors = Object.values(errorFields).flat().length > 0;
+    if (hasErrors) return;
+
     const post = {
       id: nanoid(),
-      fullName: fullName,
-      email: email,
-      subject: subject,
-      message: message,
+      fullName: data.fullName,
+      email: data.email,
+      subject: data.subject,
+      message: data.message,
     };
     try {
       const response = await axios.post(
@@ -34,9 +110,11 @@ const ContactFormApp = () => {
         post
       );
       console.log(response.data);
+      alert("message sent!");
     } catch (err) {
       alert(err);
     }
+    setData(INITIAL_STATE);
   };
 
   return (
@@ -56,13 +134,16 @@ const ContactFormApp = () => {
                     placeholder="Enter your name"
                     label="Full Name"
                     variant="outlined"
-                    value={fullName}
-                    onChange={(e) => {
-                      setFullName(e.target.value);
-                    }}
+                    name="fullName"
+                    value={data.fullName}
+                    onChange={handleChange}
                     fullWidth
-                    required
                   />
+                  {errorFields.fullName?.length ? (
+                    <span style={{ color: "red" }}>
+                      {errorFields.fullName[0].message}
+                    </span>
+                  ) : null}
                 </Grid>
 
                 <Grid xs={12} item>
@@ -70,28 +151,34 @@ const ContactFormApp = () => {
                     placeholder="Enter your email address"
                     label="Email"
                     variant="outlined"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                    }}
+                    name="email"
+                    value={data.email}
+                    onChange={handleChange}
                     fullWidth
-                    required
                   />
+                  {errorFields.email?.length ? (
+                    <span style={{ color: "red" }}>
+                      {errorFields.email[0].message}
+                    </span>
+                  ) : null}
                 </Grid>
                 <Grid xs={12} item>
                   <TextField
                     placeholder="Subject"
                     label="Subject"
                     variant="outlined"
-                    value={subject}
-                    onChange={(e) => {
-                      setSubject(e.target.value);
-                    }}
+                    name="subject"
+                    value={data.subject}
+                    onChange={handleChange}
                     multiline
                     rows={2}
                     fullWidth
-                    required
                   />
+                  {errorFields.subject?.length ? (
+                    <span style={{ color: "red" }}>
+                      {errorFields.subject[0].message}
+                    </span>
+                  ) : null}
                 </Grid>
                 <Grid xs={12} item>
                   <TextField
@@ -100,13 +187,16 @@ const ContactFormApp = () => {
                     multiline
                     rows={7}
                     variant="outlined"
-                    value={message}
-                    onChange={(e) => {
-                      setMessage(e.target.value);
-                    }}
+                    name="message"
+                    value={data.message}
+                    onChange={handleChange}
                     fullWidth
-                    required
                   />
+                  {errorFields.message?.length ? (
+                    <span style={{ color: "red" }}>
+                      {errorFields.message[0].message}
+                    </span>
+                  ) : null}
                 </Grid>
                 <Grid item>
                   <Button type="submit" variant="contained" color="secondary">
