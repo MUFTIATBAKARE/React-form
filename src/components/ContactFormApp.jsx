@@ -27,7 +27,7 @@ const VALIDATION = {
     },
     {
       isValid: (value) => /\S+@\S+\.\S+/.test(value),
-      message: "❌Invalid email address⚠️!",
+      message: "Invalid email address⚠️!",
     },
   ],
   fullName: [
@@ -37,7 +37,7 @@ const VALIDATION = {
     },
     {
       isValid: (value) => value.length > 10,
-      message: "❌Please, enter your full name⚠️!",
+      message: "Enter your full name⚠️!",
     },
   ],
   subject: [
@@ -46,8 +46,8 @@ const VALIDATION = {
       message: "Is required.",
     },
     {
-      isValid: (value) => value.length > 8,
-      message: "❌Space cannot be empty⚠️!",
+      isValid: (value) => value.length > 5,
+      message: "Text cannot be less than 5 characters⚠️!",
     },
   ],
   message: [
@@ -57,7 +57,7 @@ const VALIDATION = {
     },
     {
       isValid: (value) => value.length > 20,
-      message: "❌Insufficient entry⚠️!",
+      message: "Text cannot be less than 20 characters⚠️!",
     },
   ],
 };
@@ -81,6 +81,13 @@ const getErrorFields = (data) =>
 const ContactFormApp = () => {
   const [data, setData] = useState(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
+  const [errorModal, setErrorModal] = useState(null);
+
+  const handleClick = () => {
+    setSuccessModal(false);
+    setErrorModal(null);
+  };
   const handleChange = (event) => {
     console.log(event);
     console.log(event.target.name);
@@ -116,10 +123,11 @@ const ContactFormApp = () => {
         setData(INITIAL_STATE);
       }, 3000);
       setTimeout(() => {
-        alert("Message sent");
+        setSuccessModal(true);
       }, 3100);
     } catch (err) {
-      alert(err);
+      setErrorModal(err.message);
+      setLoading(false);
     }
   };
 
@@ -130,6 +138,28 @@ const ContactFormApp = () => {
           style={{ maxWidth: 500, padding: "20px 5px", margin: "10px auto" }}
         >
           {loading && <div className="loader"></div>}
+          {successModal && (
+            <div className="modal-container">
+              <span className="modal success">
+                <p>Message Sent!</p>
+                <button className="close-modal" onClick={handleClick}>
+                  OK!
+                </button>
+              </span>
+              <span className="overlay"></span>
+            </div>
+          )}
+          {errorModal && (
+            <div>
+              <span className="modal error">
+                <p>{`Try again later - ${errorModal}`}</p>
+                <button className="close-modal" onClick={handleClick}>
+                  OK!
+                </button>
+              </span>
+              <span className="overlay"></span>
+            </div>
+          )}
           <CardContent>
             <Typography gutterBottom variant="h4" textAlign="center">
               Contact Us
