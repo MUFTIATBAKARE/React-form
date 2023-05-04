@@ -80,7 +80,7 @@ const getErrorFields = (data) =>
 
 const ContactFormApp = () => {
   const [data, setData] = useState(INITIAL_STATE);
-
+  const [loading, setLoading] = useState(false);
   const handleChange = (event) => {
     console.log(event);
     console.log(event.target.name);
@@ -105,16 +105,22 @@ const ContactFormApp = () => {
       message: data.message,
     };
     try {
+      setLoading(true);
       const response = await axios.post(
         `https://my-json-server.typicode.com/tundeojediran/contacts-api-server/inquiries`,
         post
       );
       console.log(response.data);
-      alert("message sent!");
+      setTimeout(() => {
+        setLoading(false);
+        setData(INITIAL_STATE);
+      }, 3000);
+      setTimeout(() => {
+        alert("Message sent");
+      }, 3100);
     } catch (err) {
       alert(err);
     }
-    setData(INITIAL_STATE);
   };
 
   return (
@@ -123,6 +129,7 @@ const ContactFormApp = () => {
         <Card
           style={{ maxWidth: 500, padding: "20px 5px", margin: "10px auto" }}
         >
+          {loading && <div className="loader"></div>}
           <CardContent>
             <Typography gutterBottom variant="h4" textAlign="center">
               Contact Us
