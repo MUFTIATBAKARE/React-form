@@ -35,29 +35,12 @@ const VALIDATION = {
       isValid: (value) => !!value,
       message: "Is required.",
     },
-    {
-      isValid: (value) => value.length > 10,
-      message: "Enter your full name⚠️!",
-    },
   ],
-  subject: [
-    {
-      isValid: (value) => !!value,
-      message: "Is required.",
-    },
-    {
-      isValid: (value) => value.length > 5,
-      message: "Text cannot be less than 5 characters⚠️!",
-    },
-  ],
+
   message: [
     {
       isValid: (value) => !!value,
       message: "Is required.",
-    },
-    {
-      isValid: (value) => value.length > 20,
-      message: "Text cannot be less than 20 characters⚠️!",
     },
   ],
 };
@@ -88,6 +71,7 @@ const ContactFormApp = () => {
     setSuccessModal(false);
     setErrorModal(null);
   };
+
   const handleChange = (event) => {
     console.log(event);
     console.log(event.target.name);
@@ -96,11 +80,13 @@ const ContactFormApp = () => {
       [event.target.name]: event.target.value,
     });
   };
+
   const errorFields = getErrorFields(data);
   console.log(errorFields);
 
   const onSubmit = async (event) => {
     event.preventDefault();
+
     const hasErrors = Object.values(errorFields).flat().length > 0;
     if (hasErrors) return;
 
@@ -172,6 +158,7 @@ const ContactFormApp = () => {
                     label="Full Name"
                     variant="outlined"
                     name="fullName"
+                    type="text"
                     value={data.fullName}
                     onChange={handleChange}
                     fullWidth
@@ -211,11 +198,6 @@ const ContactFormApp = () => {
                     rows={2}
                     fullWidth
                   />
-                  {errorFields.subject?.length ? (
-                    <span style={{ color: "red" }}>
-                      {errorFields.subject[0].message}
-                    </span>
-                  ) : null}
                 </Grid>
                 <Grid xs={12} item>
                   <TextField
