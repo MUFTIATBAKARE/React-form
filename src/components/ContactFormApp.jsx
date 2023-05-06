@@ -13,10 +13,10 @@ import { useState } from "react";
 // API endpoint
 // https://my-json-server.typicode.com/tundeojediran/contacts-api-server/inquiries
 const INITIAL_STATE = {
-  fullName: " ",
-  email: " ",
-  subject: " ",
-  message: " ",
+  fullName: "",
+  email: "",
+  subject: "",
+  message: "",
 };
 
 const VALIDATION = {
@@ -44,19 +44,21 @@ const VALIDATION = {
     },
   ],
 };
-const getErrorFields = (data) =>
+const getErrorFields = (data, activeField) =>
   Object.keys(data).reduce((acc, key) => {
     if (!VALIDATION[key]) return acc;
 
     const errorsPerField = VALIDATION[key]
-      // get a list of potential errors for each field
-      // by running through all the checks
       .map((validation) => ({
         isValid: validation.isValid(data[key]),
         message: validation.message,
       }))
       // only keep the errors
       .filter((errorPerField) => !errorPerField.isValid);
+
+    if (data[key] === "" && activeField[key]) {
+      errorsPerField.push({ message: "Is required!" });
+    }
 
     return { ...acc, [key]: errorsPerField };
   }, {});
@@ -66,6 +68,7 @@ const ContactFormApp = () => {
   const [loading, setLoading] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [errorModal, setErrorModal] = useState(null);
+  const [activeField, setActiveField] = useState({});
 
   const handleClick = () => {
     setSuccessModal(false);
@@ -73,20 +76,30 @@ const ContactFormApp = () => {
   };
 
   const handleChange = (event) => {
-    console.log(event);
-    console.log(event.target.name);
     setData({
       ...data,
       [event.target.name]: event.target.value,
     });
+    setActiveField({
+      ...data,
+      [event.target.name]: true,
+    });
   };
 
-  const errorFields = getErrorFields(data);
-  console.log(errorFields);
+  const errorFields = getErrorFields(data, activeField);
 
-  const onSubmit = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const hasEmptyRequiredFields = Object.keys(data).some(
+      (key) => data[key] === "" && !activeField[key] && VALIDATION[key]
+    );
+    if (hasEmptyRequiredFields) {
+      setActiveField(
+        Object.fromEntries(Object.keys(data).map((key) => [key, true]))
+      );
+      return;
+    }
     const hasErrors = Object.values(errorFields).flat().length > 0;
     if (hasErrors) return;
 
@@ -110,6 +123,7 @@ const ContactFormApp = () => {
       }, 3000);
       setTimeout(() => {
         setSuccessModal(true);
+        setActiveField({});
       }, 3100);
     } catch (err) {
       setErrorModal(err.message);
@@ -150,7 +164,7 @@ const ContactFormApp = () => {
             <Typography gutterBottom variant="h4" textAlign="center">
               Contact Us
             </Typography>
-            <form onSubmit={onSubmit}>
+            <form onSubmit={handleSubmit}>
               <Grid container spacing={3}>
                 <Grid xs={12} item>
                   <TextField
@@ -163,7 +177,7 @@ const ContactFormApp = () => {
                     onChange={handleChange}
                     fullWidth
                   />
-                  {errorFields.fullName?.length ? (
+                  {errorFields.fullName?.length && activeField.fullName ? (
                     <span style={{ color: "red" }}>
                       {errorFields.fullName[0].message}
                     </span>
@@ -180,7 +194,7 @@ const ContactFormApp = () => {
                     onChange={handleChange}
                     fullWidth
                   />
-                  {errorFields.email?.length ? (
+                  {errorFields.email?.length && activeField.email ? (
                     <span style={{ color: "red" }}>
                       {errorFields.email[0].message}
                     </span>
@@ -211,7 +225,7 @@ const ContactFormApp = () => {
                     onChange={handleChange}
                     fullWidth
                   />
-                  {errorFields.message?.length ? (
+                  {errorFields.message?.length && activeField.message ? (
                     <span style={{ color: "red" }}>
                       {errorFields.message[0].message}
                     </span>
